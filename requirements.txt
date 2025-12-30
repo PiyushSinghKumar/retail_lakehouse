@@ -1,0 +1,9 @@
+faker
+numpy
+polars
+pyarrow
+prefect
+apache-airflow
+plotly
+dash
+dash-bootstrap-components

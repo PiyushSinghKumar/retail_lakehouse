@@ -1,0 +1,6 @@
+data/
+archived/
+**/__pycache__/
+.venv/
+**/.prefect/
+**/airflow_home/

@@ -1,0 +1,11 @@
+{
+  "project_root": "/home/voldy/ssd1/github/retail_lakehouse",
+  "data_dir": "/home/voldy/ssd1/github/retail_lakehouse/data",
+  "landing_dir": "/home/voldy/ssd1/github/retail_lakehouse/data/landing",
+  "raw_dir": "/home/voldy/ssd1/github/retail_lakehouse/data/raw",
+  "cleaned_dir": "/home/voldy/ssd1/github/retail_lakehouse/data/cleaned",
+  "aggregated_dir": "/home/voldy/ssd1/github/retail_lakehouse/data/aggregated",
+  "reports_dir": "/home/voldy/ssd1/github/retail_lakehouse/analysis/reports",
+  "compression": "zstd",
+  "compression_level": 9
+}
