@@ -1,0 +1,11 @@
+{
+  "project_root": "/opt/airflow",
+  "data_dir": "/opt/airflow/data",
+  "landing_dir": "/opt/airflow/data/landing",
+  "raw_dir": "/opt/airflow/data/raw",
+  "cleaned_dir": "/opt/airflow/data/cleaned",
+  "aggregated_dir": "/opt/airflow/data/aggregated",
+  "reports_dir": "/opt/airflow/analysis/reports",
+  "compression": "zstd",
+  "compression_level": 9
+}

@@ -1,0 +1,37 @@
+# Airflow Docker Compose for Retail Lakehouse
+# Simplified standalone setup
+---
+version: '3'
+
+services:
+  airflow-standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      bash -c "airflow standalone 2>&1 | tee /opt/airflow/standalone_output.txt"
+    ports:
+      - 8080:8080
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      PYTHONPATH: /opt/airflow/shared
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+    volumes:
+      - airflow-home:/opt/airflow
+      - ./dags:/opt/airflow/dags
+      - ../shared:/opt/airflow/shared
+      - ../data:/opt/airflow/data
+      - ./config.container.json:/opt/airflow/config.json
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: always
+
+volumes:
+  airflow-home:
