@@ -12,9 +12,16 @@ pip install -r requirements.txt
 
 # 2. Configure paths in config.json
 
-# 3. Generate data
+# 3. Generate data (basic)
 cd data_generation
 python generate_all.py --stores 500 --products 50000 --transactions 100000000 --seed 42 --output-dir ../data/landing
+
+# Or with custom parameters
+python generate_all.py \
+  --stores 500 --products 50000 --transactions 10000000 --seed 42 \
+  --output-dir ../data/landing \
+  --start-date 2023-01-01 --end-date 2024-12-31 \
+  --yoy-growth 0.20 --no-seasonality
 
 # 4. Run pipeline (choose one)
 cd ../airflow && ./run_airflow.sh     # http://localhost:8080
@@ -41,8 +48,10 @@ Landing (CSV) → Bronze (Raw) → Silver (Cleaned) → Gold (Aggregated) → Da
 
 ### Data Generation
 - Configurable synthetic retail data (stores, products, transactions)
-- Realistic German market simulation
+- Realistic German market simulation with seasonality & holidays
 - Scalable to 100M+ transactions
+- **Control Parameters**: YoY growth, date range, seasonality, holidays, traffic patterns
+- Supports streaming scenarios (configurable time windows)
 
 ### ETL Pipeline
 - **Bronze**: CSV → Parquet ingestion
@@ -86,6 +95,36 @@ Edit `config.json` for your environment:
   "compression": "zstd",
   "compression_level": 9
 }
+```
+
+### Data Generation Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--start-date` | 2020-01-01 | Transaction start date (YYYY-MM-DD) |
+| `--end-date` | Today | Transaction end date (YYYY-MM-DD) |
+| `--yoy-growth` | 0.15 | Year-over-year growth rate (0.15 = 15%) |
+| `--no-seasonality` | False | Disable seasonal patterns |
+| `--no-holidays` | False | Disable holiday effects |
+| `--avg-items` | 3 | Average items per transaction |
+| `--peak-multiplier` | 1.0 | Peak hour traffic multiplier |
+
+**Examples:**
+```bash
+# Recession scenario: negative growth, shorter period
+python generate_all.py --stores 500 --products 50000 --transactions 10000000 \
+  --seed 42 --output-dir ../data/landing \
+  --start-date 2023-01-01 --end-date 2023-12-31 --yoy-growth -0.05
+
+# Boom scenario: high growth, strong seasonality
+python generate_all.py --stores 500 --products 50000 --transactions 10000000 \
+  --seed 42 --output-dir ../data/landing \
+  --yoy-growth 0.30 --peak-multiplier 1.5
+
+# Uniform distribution: no seasonality or holidays (for testing)
+python generate_all.py --stores 500 --products 50000 --transactions 10000000 \
+  --seed 42 --output-dir ../data/landing \
+  --no-seasonality --no-holidays
 ```
 
 ## Technology Stack

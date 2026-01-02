@@ -220,12 +220,14 @@ class TransactionGenerator:
         num_transactions: int,
         store_ids: list,
         product_ids: list,
-        start_date: datetime,
-        end_date: datetime,
     ) -> pl.DataFrame:
+        # Parse dates from config
+        start_date = datetime.strptime(self.config.start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(self.config.end_date, "%Y-%m-%d")
+
         base_year = start_date.year
         num_years = end_date.year - start_date.year + 1
-        annual_growth_rate = 0.15
+        annual_growth_rate = self.config.yoy_growth
 
         year_multipliers = [1 + (i * annual_growth_rate) for i in range(num_years)]
         total_multiplier = sum(year_multipliers)
@@ -245,14 +247,14 @@ class TransactionGenerator:
             year_weights = []
 
             for dt in year_dates:
-                is_holiday = self._is_german_holiday(dt)
+                is_holiday = self._is_german_holiday(dt) if self.config.enable_holidays else False
                 is_weekend = dt.weekday() >= 5
 
-                if is_holiday:
+                if is_holiday and self.config.enable_holidays:
                     weight = 0.1
                 else:
-                    hour_weight = self._get_hourly_traffic_pattern(dt.hour, is_weekend)
-                    seasonal_weight = self._get_seasonal_multiplier(dt.month)
+                    hour_weight = self._get_hourly_traffic_pattern(dt.hour, is_weekend) * self.config.peak_hour_multiplier
+                    seasonal_weight = self._get_seasonal_multiplier(dt.month) if self.config.enable_seasonality else 1.0
                     weight = hour_weight * seasonal_weight
 
                 year_weights.append(weight)
@@ -283,12 +285,16 @@ class TransactionGenerator:
             batch_end = min(batch_start + batch_size, num_transactions)
             batch_size_actual = batch_end - batch_start
 
+            # Use Poisson distribution for items per transaction
+            quantities = np.random.poisson(lam=self.config.avg_items_per_transaction, size=batch_size_actual)
+            quantities = np.clip(quantities, 1, 10)  # Ensure at least 1, max 10
+
             batch = {
                 "transaction_id": np.arange(batch_start + 1, batch_end + 1),
                 "store_id": np.random.choice(store_ids, size=batch_size_actual),
                 "product_id": np.random.choice(product_ids, size=batch_size_actual),
                 "transaction_datetime": transaction_dates[batch_start:batch_end],
-                "quantity": np.random.randint(1, 6, size=batch_size_actual),
+                "quantity": quantities,
                 "discount_percent": np.random.choice(
                     [0.0, 0.0, 0.0, 0.10, 0.15, 0.20, 0.25], size=batch_size_actual
                 ),
